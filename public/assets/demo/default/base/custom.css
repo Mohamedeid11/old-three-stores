@@ -1,0 +1,19 @@
+#session_list_table .session_list_day {background: #ececec; font-weight: 500; color: #848484;}
+#session_list_table .session_status div {background: #d0d0d0; height: 12px; width: 12px; border-radius: 50%;}
+#session_list_table .session_status.ended_session div {background: #545454;}
+#session_list_table .session_status.canceled_session div {background: red;}
+#session_list_table .session_status.paused_session div {background: gold;}
+#session_list_table .session_status.absence_session div {background: #3f51b5;}
+#session_list_table .session_status.pending_session div {background: #ff5722;}
+#session_list_table .session_status.started_session div {background: #4caf50;}
+#session_list_table td p {margin-bottom: 5px;}
+#session_list_table td p a {font-weight: 500; color: #676767;}
+
+#session_list_table tr:first-child td:first-child {width: 200px;}
+#session_list_table tr:first-child td:nth-child(2) {width: 50px;}
+#session_list_table tr td:nth-child(2) {vertical-align: middle;}
+.fc-time-grid-container, fc-scroller {overflow: none !important; height: auto  !important;}
+.select2-container {display:block;}
+
+#dashboard_product_tags_table .dataTables_length, #dashboard_product_tags_table .dataTables_filter,
+#dashboard_product_tags_table .dataTables_info, #dashboard_product_tags_table .dataTables_paginate {display: none;}
