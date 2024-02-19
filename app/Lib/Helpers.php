@@ -1413,7 +1413,6 @@ if (!function_exists('qty_sold_inventory')) {
         $product_info = Product::findorfail($product);
 
         $inventory = Inventory::where('product', $product)->where('color', $color)->where('size', $size)->first();
-
         if (!$inventory) {
             $inventory = Inventory::create([
                 'product' => $product,
@@ -1423,8 +1422,11 @@ if (!function_exists('qty_sold_inventory')) {
                 'bought' => 0,
             ]);
         }
-
-        $qty=$inventory->bought-$inventory->sold;
+        if ($inventory->open == 1){
+            $qty = 'open';
+        }else{
+            $qty=$inventory->bought-$inventory->sold;
+        }
 
         return $qty;
 

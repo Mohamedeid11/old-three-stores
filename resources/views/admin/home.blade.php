@@ -211,6 +211,7 @@
                                 <div class="input-group-append">
 
                                     <button type="button" class="btn btn-brand" id="dashboard_product_search_btn"><i class="fas fa-search text-white"></i></button>
+                                    <button type="button" class="btn btn-success mx-2" id="copyButton"><i class="fa fa-copy text-white"></i></button>
 
                                 </div>
 
@@ -243,6 +244,10 @@
 @if(Auth::guard('admin')->user()->position == 1)
 @section('scripts')
 <script src="{{ asset('tagsinput/jquery.amsify.suggestags.js')}}"></script>
+
+<!--sweet alert cdn-->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 $(document).ready(function() { 
     get_reps();
@@ -496,30 +501,57 @@ function get_purchase_list()
 }
 </script>
 
-        <script>
+            <script>
+                (function () {
+                    $("#product_id").select2({
+                        placeholder: 'Channel...',
+                        // width: '350px',
+                        allowClear: true,
+                        ajax: {
+                            url: '{{ route('admin.getProducts') }}',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function (params) {
+                                return {
+                                    term: params.term || '',
+                                    page: params.page || 1
+                                }
+                            },
+                            cache: true
+                        }
+                    });
 
-            (function () {
+                    // Event listener for the copy button to copy the selected option
+                    $("#copyButton").click(function () {
+                        // Get the selected option text
+                        var selectedOptionText = $("#product_id").find(":selected").text();
 
-                $("#product_id").select2({
-                    placeholder: 'Channel...',
-                    // width: '350px',
-                    allowClear: true,
-                    ajax: {
-                        url: '{{route('admin.getProducts')}}',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                term: params.term || '',
-                                page: params.page || 1
-                            }
-                        },
-                        cache: true
-                    }
-                });
-            })();
+                        // Create a temporary textarea element
+                        var tempTextArea = document.createElement("textarea");
+                        tempTextArea.value = selectedOptionText;
+                        document.body.appendChild(tempTextArea);
 
-        </script>
+                        // Select the text inside the textarea
+                        tempTextArea.select();
+                        tempTextArea.setSelectionRange(0, 99999); /* For mobile devices */
+
+                        // Copy the selected text to the clipboard
+                        document.execCommand("copy");
+
+                        // Remove the temporary textarea
+                        document.body.removeChild(tempTextArea);
+
+                        // Show a SweetAlert to indicate that the text has been copied
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Copied!',
+                            timer: 1000,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
+                    });
+                })();
+            </script>
 
 
     <script>
