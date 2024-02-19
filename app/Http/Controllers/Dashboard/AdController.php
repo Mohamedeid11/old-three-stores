@@ -31,7 +31,7 @@ class AdController extends Controller
             if ($request->status == 'all')
                 $status = 'all';
         }
-        $rows = Ad::query()->where('parent_id',null);
+        $rows = Ad::query();
 
         if ($status != 'all') {
             if ($status == -1)

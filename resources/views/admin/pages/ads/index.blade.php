@@ -255,6 +255,9 @@
                             {{--                            @if(isset($ads) && is_array($ads))--}}
 
                             @forelse ($ads ??[] as $key=>$ad)
+{{--                                @php--}}
+{{--                                   dd( \App\Ad::where('parent_id',$ad->id)->where('date',$ad->date)->pluck('ad_number')->toArray());--}}
+{{--                                @endphp--}}
                                 @php
                                     $total_count=$total_count+1;
                                         $dateFilter=[$ad->date.' '.'00 00 00',$ad->date.' '.'23 59 59'];
@@ -280,12 +283,22 @@
                                                    @endif data-id="{{$ad->id}}" type="checkbox" role="switch">
                                         </div>
                                     </td>
+                                    @php
+                                        $child_ads = \App\Ad::where('parent_id',$ad->id)->get();
 
-                                    <td>{{$ad->ad_number	}}
-                                        @foreach(\App\Ad::where('parent_id',$ad->id)->where('date',$ad->date)->pluck('ad_number')->toArray() as $ad_number)
-                                            <hr>
-                                            {{$ad_number}}
-                                        @endforeach
+                                    @endphp
+
+                                    <td>
+                                        @if(count($child_ads) >0)
+                                            @foreach($child_ads as $indexHr => $ad_number)
+                                                {{$ad_number->ad_number}}
+                                                @if($indexHr < count($child_ads) - 1)
+                                                    <hr>
+                                                @endif
+                                            @endforeach
+                                        @else
+{{--                                            {{ $ad->ad_number }}--}}
+                                        @endif
                                     </td>
                                     <td>
 
@@ -336,34 +349,31 @@
                                             {{$all_total_first_total=$all_total_first_total+$total1}}
                                         </span>
                                     </span>
+                                    @php
+                                        $child_ad_result=\App\Ad::where('parent_id',$ad->id)->where('date',$ad->date)->sum('result');
+                                        $result=$ad->result+$child_ad_result;
+                                        $all_total_result=$all_total_result+$result;
+
+                                        if($result==0){
+                                            $cost_per_result=$total1;
+
+                                        }else {
+                                            $cost_per_result = $total1 / $result;
+
+                                        }
+                                        $all_total_cost_per_result = $all_total_cost_per_result + $cost_per_result;
+                                    @endphp
 
                                     <td>
-                                           <span style="display: none">
-
-                                                                                       {{ $child_ad_result=\App\Ad::where('parent_id',$ad->id)->where('date',$ad->date)->sum('result')}}
-
-                                                                                </span>
                                         {{round($ad->result+$child_ad_result,2)}}
-                                        <span style="display:none">
-                                            {{$result=$ad->result+$child_ad_result	}}
-                                            {{$all_total_result=$all_total_result+$result}}
-                                       </span>
                                     </td>
+
                                     <td>
                                         @if($result==0)
                                             {{round($total1,2)}}
                                         @else
                                             {{round($total1/$result,2)}}
                                         @endif
-                                        <span style="display:none">
-                                              @if($result==0)
-                                                {{$cost_per_result=$total1}}
-
-                                            @else
-                                                {{$cost_per_result=$total1/$result}}
-                                            @endif
-                                            {{$all_total_cost_per_result=$all_total_cost_per_result+$cost_per_result}}
-                                       </span>
                                     </td>
 
 

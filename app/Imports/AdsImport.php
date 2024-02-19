@@ -77,7 +77,6 @@ class AdsImport implements ToModel, WithHeadingRow
 
                 $parents = Ad::where('id', '!=', $ad->id)
                     ->where('date', $ad->date)
-                    ->where('parent_id', null)
                     ->get();
                 foreach ($parents as $parent) {
                     if ($parent) {
@@ -93,10 +92,11 @@ class AdsImport implements ToModel, WithHeadingRow
                         if (count($adProductIds) == count($parentProductIds) && empty(array_diff($adProductIds, $parentProductIds)) && count($adPlatformIds) == count($parentPlatformIds) && empty(array_diff($adPlatformIds, $parentPlatformIds))) {
                             $ad->parent_id = $parent->id;
                             $ad->save();
-                            break;
+                            $parent->update(['parent_id' => $parent->id]);
                         }
                     }
                 }
+
             }
 
 
