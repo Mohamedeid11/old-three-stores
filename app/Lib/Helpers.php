@@ -1413,6 +1413,7 @@ if (!function_exists('qty_sold_inventory')) {
         $product_info = Product::findorfail($product);
 
         $inventory = Inventory::where('product', $product)->where('color', $color)->where('size', $size)->first();
+
         if (!$inventory) {
             $inventory = Inventory::create([
                 'product' => $product,
