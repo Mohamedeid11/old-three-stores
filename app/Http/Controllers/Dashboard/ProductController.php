@@ -37,10 +37,11 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         if(!permission_group_checker(Auth::guard('admin')->user()->id, 'Products')) {abort(404);}
-        $selected_type = 'continue';
         if($request->get('type'))
         {
             $selected_type = $request->type;
+        }else{
+            $selected_type = 'continue';
         }
         $cats = Category::where('hide', '=', 0)->get();
         $selected_cat = array();
@@ -62,11 +63,11 @@ class ProductController extends Controller
             }
         }
 
-        if(count($selected_cat) > 0) 
+        if(count($selected_cat) > 0)
         {
             $products = Product::whereIn('cat', $selected_cat)->where('hide', '=', 0);
         }
-        else 
+        else
         {
             $products = Product::where('hide', '=', 0);
         }
@@ -143,7 +144,7 @@ class ProductController extends Controller
         }
         else
         {
-            $product->cat = 0; 
+            $product->cat = 0;
         }
         $product->save();
         if($request->colors)
@@ -156,7 +157,7 @@ class ProductController extends Controller
                 $pc->save();
             }
         }
-        
+
         if($request->size)
         {
             for ($i = 0; $i < count($request->size); $i++)
@@ -179,7 +180,7 @@ class ProductController extends Controller
             $n->size = 0;
             $n->save();
         }
-        else 
+        else
         {
             if(count($product->colors) > 0 && count($product->sizes) > 0)
             {
@@ -194,7 +195,7 @@ class ProductController extends Controller
                             $n->product = $product->id;
                             $n->color = $color->color;
                             $n->size = $size->size;
-                            $n->save();                            
+                            $n->save();
                         }
                     }
                 }
@@ -210,7 +211,7 @@ class ProductController extends Controller
                         $n->product = $product->id;
                         $n->color = $color->color;
                         $n->size = 0;
-                        $n->save();                            
+                        $n->save();
                     }
                 }
             }
@@ -225,11 +226,11 @@ class ProductController extends Controller
                         $n->product = $product->id;
                         $n->color = 0;
                         $n->size = $size->size;
-                        $n->save();                            
+                        $n->save();
                     }
                 }
             }
-                           
+
         }
 
         $all_tags = explode(',', $request->tags);
@@ -246,7 +247,7 @@ class ProductController extends Controller
                         $cht->title = $all_tags[$i];
                         $cht->save();
                     }
-    
+
                     $oo = new productTag;
                     $oo->product_id = $product->id;
                     $oo->tag_id = $cht->id;
@@ -254,7 +255,7 @@ class ProductController extends Controller
                 }
             }
         }
-        return redirect()->route('products.create');  
+        return redirect()->route('products.create');
     }
 
     public function show($id)
@@ -274,7 +275,7 @@ class ProductController extends Controller
         }
         else
         {
-            $from_date = date('Y-m-d', strtotime('- 7 Days'));   
+            $from_date = date('Y-m-d', strtotime('- 7 Days'));
         }
         if($from_date == '') {$from_date = date('Y-m-d', strtotime('- 7 Days'));}
 
@@ -284,7 +285,7 @@ class ProductController extends Controller
         }
         else
         {
-            $to_date = date('Y-m-d');   
+            $to_date = date('Y-m-d');
         }
         if($to_date == '') {$to_date = date('Y-m-d');}
 
@@ -297,7 +298,7 @@ class ProductController extends Controller
         ->where('created_at', '<=', $to_date_time);
 
         return view('admin.pages.products.timeline')->with(['product'=>$product, 'timelines'=>$timelines,
-        'from_date'=>$from_date, 'to_date'=>$to_date]);        
+        'from_date'=>$from_date, 'to_date'=>$to_date]);
     }
     /**
      * Show the form for editing the specified resource.
@@ -334,7 +335,7 @@ class ProductController extends Controller
             $tags_ids = productTag::where('product_id', $id)->pluck('tag_id')->toArray();
             $all_tags = implode(',', TagGroup::whereIn('id', $tags_ids)->pluck('title')->toArray());
             return view('admin.pages.products.edit')->with(['product'=>$product, 'colors'=>$colors, 'sizes'=>$sizes, 'cats'=>$cats,
-            'main_cat'=>$main_cat, 'sub_cats'=>$sub_cats, 'product_colors'=>$product_colors, 'product_sizes'=>$product_sizes, 
+            'main_cat'=>$main_cat, 'sub_cats'=>$sub_cats, 'product_colors'=>$product_colors, 'product_sizes'=>$product_sizes,
             'all_tags'=>$all_tags]);
         }
         else
@@ -384,7 +385,7 @@ class ProductController extends Controller
             }
             else
             {
-                $product->cat = 0; 
+                $product->cat = 0;
             }
             $product->save();
             $pps = ProductColor::where('product', '=', $id)->get();
@@ -427,7 +428,7 @@ class ProductController extends Controller
                 $n->size = 0;
                 $n->save();
             }
-            else 
+            else
             {
                 if(count($product->colors) > 0 && count($product->sizes) > 0)
                 {
@@ -489,7 +490,7 @@ class ProductController extends Controller
                         }
                     }
                 }
-                               
+
             }
 
             $prspps = productTag::where('product_id', $product->id)->get();
@@ -517,7 +518,7 @@ class ProductController extends Controller
                             $cht->title = $all_tags[$i];
                             $cht->save();
                         }
-    
+
                         $oo = new productTag;
                         $oo->product_id = $product->id;
                         $oo->tag_id = $cht->id;
@@ -525,9 +526,9 @@ class ProductController extends Controller
                     }
                 }
             }
-            
+
             //update_woocommerce_product($product->id);
-            return redirect()->back();  
+            return redirect()->back();
         }
         else
         {
@@ -547,11 +548,11 @@ class ProductController extends Controller
         $product = Product::findorfail($id);
         $product->hide = 1;
         $product->save();
-        
+
         // DB::connection('mysql2')->table("wp_thposts")->where('ID', $product->woocommerce)->update(['post_status'=>'trash']);
         return redirect()->back();
     }
-    
+
     // Copy product
     public function copy_product ($id)
     {
@@ -560,9 +561,9 @@ class ProductController extends Controller
         if($product->hide == 1) {abort(404);}
         $new_pr = $product->replicate();
         $new_pr->save();
-        
+
         $pps = ProductColor::where('product', '=', $id)->get();
-        foreach ($pps as $a) 
+        foreach ($pps as $a)
         {
             $pc = new ProductColor;
             $pc->color = $a->color;
@@ -570,16 +571,16 @@ class ProductController extends Controller
             $pc->save();
         }
         $pps = ProductSize::where('product', '=', $id)->get();
-        foreach ($pps as $a) 
+        foreach ($pps as $a)
         {
             $pc = new ProductSize;
             $pc->size = $a->size;
             $pc->product = $new_pr->id;
             $pc->save();
         }
-        
+
         // add_product_to_wp($new_pr->id);
-        
+
         $product = Product::find($new_pr->id);
         if(count($product->colors) == 0 && count($product->sizes) == 0)
         {
@@ -589,7 +590,7 @@ class ProductController extends Controller
             $n->size = 0;
             $n->save();
         }
-        else 
+        else
         {
             if(count($product->colors) > 0 && count($product->sizes) > 0)
             {
@@ -604,7 +605,7 @@ class ProductController extends Controller
                             $n->product = $product->id;
                             $n->color = $color->color;
                             $n->size = $size->size;
-                            $n->save();                            
+                            $n->save();
                         }
                     }
                 }
@@ -620,7 +621,7 @@ class ProductController extends Controller
                         $n->product = $product->id;
                         $n->color = $color->color;
                         $n->size = 0;
-                        $n->save();                            
+                        $n->save();
                     }
                 }
             }
@@ -635,11 +636,11 @@ class ProductController extends Controller
                         $n->product = $product->id;
                         $n->color = 0;
                         $n->size = $size->size;
-                        $n->save();                            
+                        $n->save();
                     }
                 }
             }
-                           
+
         }
 
         return redirect()->route('products.edit', $product->id);
@@ -667,7 +668,7 @@ class ProductController extends Controller
                     $cht->title = $all_tags[$j];
                     $cht->save();
                 }
-    
+
                 $oo = new productTag;
                 $oo->product_id = $request->items[$i];
                 $oo->tag_id = $cht->id;
@@ -704,16 +705,24 @@ class ProductController extends Controller
 
 
         public function getProducts(Request $request){
-
             if ($request->ajax()) {
 
                 $term = trim($request->term);
                 $posts = DB::table('products')->select('id', 'title as text')
                     ->where('title', 'LIKE', '%' . $term . '%')
-                    ->where('hide',0)
-                    ->where('discontinue',0)
-                    ->orderBy('title', 'asc')->simplePaginate(6);
+                    ->where('hide',0);
 
+                if(isset($request->type)){
+                    if ($request->type == 'continue'){
+                        $posts->where('discontinue',0);
+                    }elseif ($request->type == 'discontinue'){
+                        $posts->where('discontinue',1);
+                    }
+                }else{
+                    $posts->where('discontinue',0);
+                }
+
+                $posts = $posts->orderBy('title', 'asc')->simplePaginate(6);
                 $morePages = true;
                 $pagination_obj = json_encode($posts);
                 if (empty($posts->nextPageUrl())) {

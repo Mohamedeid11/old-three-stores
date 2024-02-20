@@ -224,6 +224,9 @@
 	<script>
 
 		(function () {
+			// Extracting value from the URL
+			var urlParams = new URLSearchParams(window.location.search);
+			var myParam = urlParams.get('type');
 
 			$("#product_id").select2({
 				closeOnSelect: false,
@@ -237,7 +240,8 @@
 					data: function (params) {
 						return {
 							term: params.term || '',
-							page: params.page || 1
+							page: params.page || 1,
+							type: myParam
 						}
 					},
 					cache: true
