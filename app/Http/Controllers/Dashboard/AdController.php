@@ -379,5 +379,11 @@ class AdController extends Controller
 
     }
 
+    public function getChildes($id)
+    {
+        $ads = Ad::where('id' , $id )->orWhere( 'parent_id' , $id)->get();
+        return response()->json($ads);
+    }
+
 
 }

@@ -225,6 +225,7 @@ Route::group(['namespace' => 'Dashboard', 'middleware'=>'admin'], function() {
 
 
     Route::resource('ads', 'AdController');
+    Route::get('ad/childes/{id}', 'AdController@getChildes')->name('ad.childes');
     Route::post('ads/updated/{id}', 'AdController@update')->name('ads.updated');
     Route::get('changeAdStatus', 'AdController@changeAdStatus')->name('changeAdStatus');
     Route::get('/export-ads', 'AdController@exportAds')->name('export-ads');

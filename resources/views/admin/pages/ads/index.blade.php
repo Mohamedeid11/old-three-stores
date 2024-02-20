@@ -255,17 +255,21 @@
                             {{--                            @if(isset($ads) && is_array($ads))--}}
 
                             @forelse ($ads ??[] as $key=>$ad)
+
                                 @php
                                     $total_count=$total_count+1;
-                                        $dateFilter=[$ad->date.' '.'00 00 00',$ad->date.' '.'23 59 59'];
-
-                                  $invoiceDate= date('Y-m-d', strtotime($ad->date. ' + 10 days')).' 23::59::59';
-                                $platform_ides=\App\AdPlatform::where('ad_id',$ad->id)->pluck('platform_id')->toArray();
-
+                                    $dateFilter=[$ad->date.' '.'00 00 00',$ad->date.' '.'23 59 59'];
+                                    $invoiceDate= date('Y-m-d', strtotime($ad->date. ' + 10 days')).' 23::59::59';
+                                    $platform_ides=\App\AdPlatform::where('ad_id',$ad->id)->pluck('platform_id')->toArray();
+                                    $childes = \App\Ad::where('parent_id', $ad->id)->where('date',$ad->date)->get();
                                 @endphp
 
                                 <tr id="tr_{{$ad->id}}">
-                                    <td>{{$ad->date}}</td>
+                                    <!-- Date -->
+                                    <td>
+                                        {{$ad->date}}
+                                    </td>
+                                    <!-- Platform -->
                                     <td>
                                         @forelse($ad->platforms ??[] as $platform )
                                             {{$platform->title??''}} <br>
@@ -273,6 +277,7 @@
 
                                         @endforelse
                                     </td>
+                                    <!-- Active -->
                                     <td>
                                         <div class="form-check form-switch">
                                             <input @if(permission_checker(Auth::guard('admin')->user()->id, 'edit_ads')) class="form-check-input activeBtn"
@@ -280,13 +285,15 @@
                                                    @endif data-id="{{$ad->id}}" type="checkbox" role="switch">
                                         </div>
                                     </td>
-
-                                    <td>{{$ad->ad_number	}}
-                                        @foreach(\App\Ad::where('parent_id',$ad->id)->where('date',$ad->date)->pluck('ad_number')->toArray() as $ad_number)
+                                    <!-- Ad Number -->
+                                    <td>
+                                        {{$ad->ad_number	}}
+                                        @foreach($childes as $child)
                                             <hr>
-                                            {{$ad_number}}
+                                            {{$child->ad_number}}
                                         @endforeach
                                     </td>
+                                    <!-- Tags -->
                                     <td>
 
                                         @forelse($ad->products ??[] as $product)
@@ -305,6 +312,7 @@
 
                                         @endforelse
                                     </td>
+                                    <!-- Products -->
                                     <td>
 
                                         @forelse($ad->products ??[] as $product)
@@ -315,7 +323,6 @@
                                         @endforelse
 
                                     </td>
-
 
                                     <span style="display:none;">
                                         <span style="display: none">
@@ -336,7 +343,7 @@
                                             {{$all_total_first_total=$all_total_first_total+$total1}}
                                         </span>
                                     </span>
-
+                                    <!-- Result -->
                                     <td>
                                            <span style="display: none">
 
@@ -349,6 +356,7 @@
                                             {{$all_total_result=$all_total_result+$result}}
                                        </span>
                                     </td>
+                                    <!-- Cost Per Result -->
                                     <td>
                                         @if($result==0)
                                             {{round($total1,2)}}
@@ -365,9 +373,7 @@
                                             {{$all_total_cost_per_result=$all_total_cost_per_result+$cost_per_result}}
                                        </span>
                                     </td>
-
-
-
+                                    <!-- Total -->
                                     <td>
                                         <span style="display: none">
 
@@ -380,10 +386,7 @@
                                         @endif
 
                                     </td>
-
-
-
-
+                                    <!-- Order -->
                                     <td>
 
                                         @php
@@ -433,7 +436,7 @@
                                         </span>
 
                                     </td>
-
+                                    <!-- Order Value -->
                                     <td>
 
                                         @php
@@ -443,10 +446,10 @@
 
                                         @forelse($ad->products ??[] as $product)
                                             <span style="display: none;">
-       @php
-           $order_ides=\App\SellOrderItem::where('product',$product->id)->pluck('order')->toArray();
-           $orders=\App\SellOrder::whereIn('id',$order_ides)->where('hide',0)->whereBetween('created_at', array($ad->date . " 00:00:00", $ad->date . " 23:59:59"))->get();
-       @endphp
+                                               @php
+                                                   $order_ides=\App\SellOrderItem::where('product',$product->id)->pluck('order')->toArray();
+                                                   $orders=\App\SellOrder::whereIn('id',$order_ides)->where('hide',0)->whereBetween('created_at', array($ad->date . " 00:00:00", $ad->date . " 23:59:59"))->get();
+                                               @endphp
                                                 @forelse($orders ??[] as $order)
 
 
@@ -500,6 +503,7 @@
 
                                         </span>
                                     </td>
+                                    <!-- Total -->
                                     <td>
                                         {{$secondTotal=$orderValue}}
                                         <span style="display:none">
@@ -507,6 +511,7 @@
 
                                         </span>
                                     </td>
+                                    <!-- Rol -->
                                     <td>
 
 
@@ -532,6 +537,7 @@
                                         </span>
 
                                     </td>
+                                    <!-- Revenue -->
                                     <td>
                                         {{round($secondTotal-$products_buy-$total1,2)}}
                                         <span style="display:none">
@@ -541,7 +547,7 @@
                                         </span>
 
                                     </td>
-
+                                    <!-- CPO -->
                                     <td>
 
                                         @if($ordersNummbers>0)
@@ -558,7 +564,7 @@
                                             {{$all_total_cpo=$all_total_cpo+$cpo}}
                                         </span>
                                     </td>
-
+                                    <!-- Results Per Order -->
                                     <th>
                                         @if($ordersNummbers>0)
                                             {{round($ad->result/$ordersNummbers,2)}}
@@ -574,8 +580,7 @@
                                             {{$all_total_result_per_order=$all_total_result_per_order+$result_per_order}}
                                         </span>
                                     </th>
-
-
+                                    <!-- Action -->
                                     <td>
                                         <div class="dropdown">
                                             <button class="btn btn-link" type="button" id="dropdownMenuButton"
@@ -584,9 +589,12 @@
                                                 <i class="fas fa-ellipsis-h"></i>
                                             </button>
                                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                @if(permission_checker(Auth::guard('admin')->user()->id, 'edit_ads'))'))
-                                                <button class="dropdown-item editBtn" data-id="{{$ad->id}}">Edit
-                                                </button>
+                                                @if(permission_checker(Auth::guard('admin')->user()->id, 'edit_ads'))
+                                                    @if($childes->count() > 0)
+                                                        <button type="button" class="dropdown-item selectChild" data-toggle="modal" data-target="#selectChildModal"  data-url="{{ route('ad.childes' , $ad->id ) }}">Edit</button>
+                                                    @else
+                                                        <button class="dropdown-item editBtn" data-id="{{$ad->id}}">Edit</button>
+                                                    @endif
                                                 @endif
                                                 @if(permission_checker(Auth::guard('admin')->user()->id, 'add_ads'))
                                                     <button class="dropdown-item" data-id="{{$ad->id}}">Re-Ad</button>
@@ -601,12 +609,12 @@
 
                                     </td>
 
-
                                 </tr>
                             @empty
                             @endforelse
                             {{--                            @endif--}}
                             </tbody>
+
                             <span style="display:none">
                                @if($total_count==0)
                                     {{$total_count=1}}
@@ -628,12 +636,12 @@
                                     <h5>{{round($all_total_cost_per_result, 2)}}</h5>
 
                                 @endif
-                               
+
 
                             </td>
                             <td>
                                  <h5>{{round($all_total_first_total,2)}}</h5>
-                               
+
 
                             </td>
 
@@ -717,23 +725,87 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Modal for selecting parent/child ad -->
+    <div class="modal fade" id="selectChildModal" tabindex="-1" role="dialog" aria-labelledby="selectChildModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selectChildModalLabel">Select Ad</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="selectAdForm">
+                        <div class="form-group">
+                            <label for="adSelect">Select Ad</label>
+                            <select class="form-control" id="adSelect" name="adSelect">
+                                <!-- Options will be dynamically populated via JavaScript -->
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
 @section('scripts')
 
-    <script src="
-https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js
-"></script>
-    <link href="
-https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css
-" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
+
     <script>
-        var loader = `<div class="linear-background">
-		<div class="inter-crop"></div>
-		<div class="inter-right--top"></div>
-		<div class="inter-right--bottom"></div>
-	</div>`;
+        $(document).ready(function() {
+            $('.selectChild').click(function() {
+                var url = $(this).data('url');
+
+                // Fetch ad data via AJAX and populate select options
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        var adSelect = $('#adSelect');
+                        adSelect.empty();
+                        console.log(response)
+                        // Populate select options
+                        adSelect.append($('<option> Select Ad </option>').attr('value', response.id).text(response.ad_number));
+                        response.forEach(function(child) {
+                            adSelect.append($('<option></option>').attr('value', child.id).text(child.ad_number));
+                        });
+                    }
+                });
+            });
+
+            // Handle form submission
+            $('#selectAdForm').submit(function(event) {
+                event.preventDefault();
+                var id = $('#adSelect').val();
+                $('#modal-body').html(loader)
+                $('#operationType').text('تعديل');
+                $('#editOrCreate').modal('show')
+                var editUrl = "{{route("ads.edit",':id')}}";
+                editUrl = editUrl.replace(':id', id)
+                setTimeout(function () {
+                    $('#modal-body').load(editUrl)
+                }, 500)
+                $('#selectChildModal').modal('hide');
+            });
+        });
+
+    </script>
+    <script>
+        var loader =
+            `<div class="linear-background">
+                <div class="inter-crop"></div>
+                <div class="inter-right--top"></div>
+                <div class="inter-right--bottom"></div>
+	        </div>`;
+
         $(document).on('click', '#importBtn', function () {
 
             $('#modal-body').html(loader)
