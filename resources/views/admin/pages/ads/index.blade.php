@@ -64,25 +64,35 @@
     <style>
         #table-wrapper {
             position: relative;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         #table-scroll {
-            /*height: 150px;*/
             overflow: auto;
             margin-top: 20px;
+            max-height: 600px; /* Adjust max-height as needed */
         }
 
         #table-wrapper table {
-            width: 100%;
-
+            width: auto; /* Allow table to expand to fit content */
+            border-collapse: collapse;
         }
 
-        /*#table-wrapper table * {*/
-        /*    background: yellow;*/
-        /*    color: black;*/
-        /*}*/
+        #table-wrapper table th,
+        #table-wrapper table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
 
-        #table-wrapper table thead th .text {
+        #table-wrapper table th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        /* Optional: Adjust styles for header text */
+        #table-wrapper table th .text {
             position: absolute;
             top: -20px;
             z-index: 2;
@@ -565,7 +575,7 @@
                                         </span>
                                     </td>
                                     <!-- Results Per Order -->
-                                    <th>
+                                    <td>
                                         @if($ordersNummbers>0)
                                             {{round($ad->result/$ordersNummbers,2)}}
                                         @else
@@ -579,7 +589,7 @@
                                             @endif
                                             {{$all_total_result_per_order=$all_total_result_per_order+$result_per_order}}
                                         </span>
-                                    </th>
+                                    </td>
                                     <!-- Action -->
                                     <td>
                                         <div class="dropdown">
@@ -825,6 +835,8 @@
                 var adType = $('#ad-type').val();
 
                 if(adType == 'edit') {
+
+                    // here for update the ad
                     $('#modal-body').html(loader)
                     $('#operationType').text('تعديل');
                     $('#editOrCreate').modal('show')
@@ -833,7 +845,9 @@
                     setTimeout(function () {
                         $('#modal-body').load(editUrl)
                     }, 500)
+
                 }else{
+                    // here for the delete ad
                     // Display SweetAlert confirmation dialog
                     Swal.fire({
                         title: 'Are you sure?',
@@ -862,17 +876,16 @@
                                         if (data.status == 200) {
                                             $(`#tr_${id}`).remove();
                                             toastr.success(data.message)
+                                            location.reload();
                                         } else {
                                             toastr.error('there is an error')
                                         }
 
                                     }, 1000);
                                 }, error: function (data) {
-
                                     if (data.code === 500) {
                                         toastr.error('there is an error')
                                     }
-
 
                                     if (data.code === 422) {
                                         var errors = $.parseJSON(data.responseText);
@@ -888,6 +901,7 @@
                                             }
                                         });
                                     }
+                                    location.reload();
                                 }
 
                             });
@@ -1074,6 +1088,7 @@
                                 if (data.status == 200) {
                                     $(`#tr_${id}`).remove();
                                     toastr.success(data.message)
+                                    location.reload()
                                 } else {
                                     toastr.error('there is an error')
                                 }
@@ -1160,12 +1175,12 @@
                     if (res['status'] == true) {
                         toastr.success("تمت العملية بنجاح")
                     } else {
-                        // location.reload();
+                        location.reload();
 
                     }
                 },
                 error: function (data) {
-                    // location.reload();
+                    location.reload();
                 }
             });
 
