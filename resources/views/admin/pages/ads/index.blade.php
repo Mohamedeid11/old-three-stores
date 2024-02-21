@@ -591,7 +591,15 @@
                                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                                 @if(permission_checker(Auth::guard('admin')->user()->id, 'edit_ads'))
                                                     @if($childes->count() > 0)
-                                                        <button type="button" class="dropdown-item selectChild" data-toggle="modal" data-target="#selectChildModal"  data-url="{{ route('ad.childes' , $ad->id ) }}">Edit</button>
+                                                        <button
+                                                                type="button"
+                                                                class="dropdown-item selectChild"
+                                                                data-toggle="modal" data-target="#selectChildModal"
+                                                                data-url="{{ route('ad.childes' , $ad->id ) }}"
+                                                                data-ad-id="{{  $ad->id  }}"
+                                                                data-btn-type="edit">
+                                                            Edit
+                                                        </button>
                                                     @else
                                                         <button class="dropdown-item editBtn" data-id="{{$ad->id}}">Edit</button>
                                                     @endif
@@ -600,8 +608,19 @@
                                                     <button class="dropdown-item" data-id="{{$ad->id}}">Re-Ad</button>
                                                 @endif
                                                 @if(permission_checker(Auth::guard('admin')->user()->id, 'delete_ads'))
-                                                    <button class="dropdown-item delete" data-id="{{$ad->id}}">Delete
-                                                    </button>
+                                                        @if($childes->count() > 0)
+                                                            <button
+                                                                    type="button"
+                                                                    class="dropdown-item selectChild"
+                                                                    data-toggle="modal" data-target="#selectChildModal"
+                                                                    data-url="{{ route('ad.childes' , $ad->id ) }}"
+                                                                    data-ad-id="{{  $ad->id  }}"
+                                                                    data-btn-type="delete">
+                                                                Delete
+                                                            </button>
+                                                        @else
+                                                            <button class="dropdown-item delete" data-id="{{$ad->id}}">Delete</button>
+                                                        @endif
                                                 @endif
                                             </div>
                                         </div>
@@ -741,11 +760,13 @@
                     <form id="selectAdForm">
                         <div class="form-group">
                             <label for="adSelect">Select Ad</label>
+                            <input type="hidden" name="ad-type" id="ad-type">
                             <select class="form-control" id="adSelect" name="adSelect">
                                 <!-- Options will be dynamically populated via JavaScript -->
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Edit</button>
+                        <!-- button will be dynamically populated via JavaScript -->
+                        <div id="buttonContainer"></div>
                     </form>
                 </div>
             </div>
@@ -756,27 +777,43 @@
 
 @section('scripts')
 
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
+<script>
+    import Index from "../../../../../public/ckeditor/old/index.html";
+    export default {
+        components: {Index}
+    }
+</script>
     <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
 
     <script>
         $(document).ready(function() {
             $('.selectChild').click(function() {
+                var btType = $(this).data('btn-type');
                 var url = $(this).data('url');
-
+                var adId = $(this).data('ad-id');
                 // Fetch ad data via AJAX and populate select options
                 $.ajax({
                     url: url,
                     type: 'GET',
                     success: function(response) {
                         var adSelect = $('#adSelect');
+
                         adSelect.empty();
-                        console.log(response)
                         // Populate select options
                         adSelect.append($('<option> Select Ad </option>').attr('value', response.id).text(response.ad_number));
                         response.forEach(function(child) {
                             adSelect.append($('<option></option>').attr('value', child.id).text(child.ad_number));
                         });
+                        if(btType == 'edit'){
+                            var button = $('<button type="submit" class="btn btn-primary">Edit</button>');
+                            $('#buttonContainer').html(button);
+                        }else{
+                            event.preventDefault();
+                            var button = $('<button class="btn btn-danger" data-id="'+ adId +'"> Delete </button>');
+                            $('#buttonContainer').html(button);
+                        }
+                        // Store btType in a hidden input field
+                        $('#ad-type').val(btType);
                     }
                 });
             });
@@ -785,17 +822,84 @@
             $('#selectAdForm').submit(function(event) {
                 event.preventDefault();
                 var id = $('#adSelect').val();
-                $('#modal-body').html(loader)
-                $('#operationType').text('تعديل');
-                $('#editOrCreate').modal('show')
-                var editUrl = "{{route("ads.edit",':id')}}";
-                editUrl = editUrl.replace(':id', id)
-                setTimeout(function () {
-                    $('#modal-body').load(editUrl)
-                }, 500)
+                var adType = $('#ad-type').val();
+
+                if(adType == 'edit') {
+                    $('#modal-body').html(loader)
+                    $('#operationType').text('تعديل');
+                    $('#editOrCreate').modal('show')
+                    var editUrl = "{{route("ads.edit",':id')}}";
+                    editUrl = editUrl.replace(':id', id)
+                    setTimeout(function () {
+                        $('#modal-body').load(editUrl)
+                    }, 500)
+                }else{
+                    // Display SweetAlert confirmation dialog
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var url = '{{ route("ads.destroy",":id") }}';
+                            url = url.replace(':id', id)
+                            $.ajax({
+                                url: url,
+                                type: 'DELETE',
+                                beforeSend: function () {
+                                    $('.loader-ajax').show()
+
+                                },
+
+                                success: function (data) {
+
+                                    window.setTimeout(function () {
+                                        $('.loader-ajax').hide()
+                                        if (data.status == 200) {
+                                            $(`#tr_${id}`).remove();
+                                            toastr.success(data.message)
+                                        } else {
+                                            toastr.error('there is an error')
+                                        }
+
+                                    }, 1000);
+                                }, error: function (data) {
+
+                                    if (data.code === 500) {
+                                        toastr.error('there is an error')
+                                    }
+
+
+                                    if (data.code === 422) {
+                                        var errors = $.parseJSON(data.responseText);
+
+                                        $.each(errors, function (key, value) {
+                                            if ($.isPlainObject(value)) {
+                                                $.each(value, function (key, value) {
+                                                    toastr.error(value)
+                                                });
+
+                                            } else {
+
+                                            }
+                                        });
+                                    }
+                                }
+
+                            });
+
+                        }
+                    });
+                }
+
                 $('#selectChildModal').modal('hide');
             });
         });
+
 
     </script>
     <script>
@@ -909,6 +1013,7 @@
                     $('#editBtn').html(`تحديث`).attr('disabled', false);
                     if (data.status == 200) {
                         toastr.success((data.message) ?? 'تم تحديث البيانات بنجاح');
+                        location.reload();
                     } else
                         toastr.error('عذرا هناك خطأ فني 😞');
 
@@ -941,69 +1046,65 @@
         $(document).on('click', '.delete', function () {
 
             var id = $(this).data('id');
-            // swal.fire({
-            //     title: "Are you sure to delete?",
-            //     text: "Can't you undo then?",
-            //     icon: "warning",
-            //     showCancelButton: true,
-            //     confirmButtonColor: "#DD6B55",
-            //     confirmButtonText: "Ok",
-            //     cancelButtonText: "Cancel",
-            //     okButtonText: "Ok",
-            //     closeOnConfirm: false
-            // }).then((result) => {
-            //     if (!result.isConfirmed) {
-            //         return true;
-            //     }
+            // Display SweetAlert confirmation dialog
+            Swal.fire({
+                title: 'Are you sure to delete?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var url = '{{ route("ads.destroy",":id") }}';
+                    url = url.replace(':id', id)
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        beforeSend: function () {
+                            $('.loader-ajax').show()
+
+                        },
+
+                        success: function (data) {
+
+                            window.setTimeout(function () {
+                                $('.loader-ajax').hide()
+                                if (data.status == 200) {
+                                    $(`#tr_${id}`).remove();
+                                    toastr.success(data.message)
+                                } else {
+                                    toastr.error('there is an error')
+                                }
+
+                            }, 1000);
+                        }, error: function (data) {
+
+                            if (data.code === 500) {
+                                toastr.error('there is an error')
+                            }
 
 
-            var url = '{{ route("ads.destroy",":id") }}';
-            url = url.replace(':id', id)
-            $.ajax({
-                url: url,
-                type: 'DELETE',
-                beforeSend: function () {
-                    $('.loader-ajax').show()
+                            if (data.code === 422) {
+                                var errors = $.parseJSON(data.responseText);
 
-                },
+                                $.each(errors, function (key, value) {
+                                    if ($.isPlainObject(value)) {
+                                        $.each(value, function (key, value) {
+                                            toastr.error(value)
+                                        });
 
-                success: function (data) {
+                                    } else {
 
-                    window.setTimeout(function () {
-                        $('.loader-ajax').hide()
-                        if (data.status == 200) {
-                            $(`#tr_${id}`).remove();
-                            toastr.success(data.message)
-                        } else {
-                            toastr.error('there is an error')
+                                    }
+                                });
+                            }
                         }
 
-                    }, 1000);
-                }, error: function (data) {
-
-                    if (data.code === 500) {
-                        toastr.error('there is an error')
-                    }
-
-
-                    if (data.code === 422) {
-                        var errors = $.parseJSON(data.responseText);
-
-                        $.each(errors, function (key, value) {
-                            if ($.isPlainObject(value)) {
-                                $.each(value, function (key, value) {
-                                    toastr.error(value)
-                                });
-
-                            } else {
-
-                            }
-                        });
-                    }
+                    });
                 }
-
             });
-            // });
         });
 
 

@@ -56,6 +56,10 @@
     <link href="
 https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css
 " rel="stylesheet">
+
+    <!-- Include SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
+
     <style>
         .lds-grid {
             display: inline-block;
@@ -1696,6 +1700,8 @@ https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css
 
         <script src="{{ asset('js/sweet.js')}}"></script>
 
+        <!-- Include SweetAlert JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 @yield('scripts')
 
